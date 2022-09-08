@@ -1,0 +1,19 @@
+[servers]
+domain = "gin.com"
+localhost = "127.0.0.1"
+name = "gin app"
+port = 8080
+
+[database]
+dsn = "root:password@tcp(127.0.0.1:3306)/go_test?charset=utf8mb4&parseTime=True&loc=Local"
+
+[oss]
+dsn = "bucker.oss-accelerate.aliyuncs.com"
+
+[email]
+host = "smtp.exmail.qq.com"
+password = "adsafas"
+port = 465
+sendname = "send name"
+tomail = "name@mai.com"
+username = "admin@mail.com"
