@@ -26,7 +26,7 @@ type Article struct {
 	gorm.Model
 	LanguageID        uint
 	ArticleCategoryID uint   `gorm:"not null"`
-	Name              string `gorm:"size:255;not null;unique"`
+	Title             string `gorm:"size:255;not null;unique"`
 	Pathname          string `gorm:"size:255;not null;unique"`
 	Sort              uint   `gorm:"not null;default:0"`
 	Showed            uint   `gorm:"not null;default:1"`
