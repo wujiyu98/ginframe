@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
-	"math"
+
+	"github.com/wujiyu98/ginframe/pkg/pagination"
 )
 
 func main() {
-	var a uint = 19
-	var b int = 2
-	c := float64(a) / float64(b)
-	fmt.Print(math.Ceil(c))
+
+	p := pagination.Default(11, 100)
+
+	fmt.Println(p.GetList())
+	fmt.Print(p.Page)
 
 }
