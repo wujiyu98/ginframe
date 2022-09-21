@@ -37,4 +37,5 @@ type Article struct {
 	MetaTitle         string `gorm:"size:255;not null"`
 	MetaKeywords      string `gorm:"size:120;default:''"`
 	MetaDescription   string `gorm:"size:255;default:''"`
+	FirstName         string
 }
