@@ -1,9 +1,9 @@
 package dao
 
 import (
-	"fmt"
-
+	"github.com/gin-gonic/gin"
 	"github.com/wujiyu98/ginframe/database"
+	"github.com/wujiyu98/ginframe/model"
 	"github.com/wujiyu98/ginframe/tool/pagination"
 	"gorm.io/gorm"
 )
@@ -16,14 +16,20 @@ type dao struct {
 	*gorm.DB
 }
 
-func (d dao) Pagination(p *pagination.Paginate, m interface{}, rows interface{}, query interface{}, args ...interface{}) {
+func (d dao) pagination(p *pagination.Paginate, tx *gorm.DB, rows interface{}) {
 	var count int64
 	if p.Count == 0 {
-		if err := d.Model(m).Where(query, args...).Count(&count).Error; err != nil {
-			fmt.Print(err)
-		}
+		tx.Count(&count)
 		p.SetCount(count)
 	}
-	d.Where(query, args...).Offset(p.Offset).Limit(int(p.Size)).Find(rows)
+	tx.Order("desc id").Offset(p.Offset).Limit(int(p.Size)).Find(rows)
+
+}
+
+func (d dao) ProductPagination(ctx *gin.Context, size uint) (p *pagination.Paginate, rows []model.Article) {
+	p = pagination.New(ctx, size)
+	tx := d.Where("article_category_id", 1)
+	d.pagination(p, tx, &rows)
+	return p, rows
 
 }
