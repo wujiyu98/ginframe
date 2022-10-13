@@ -28,7 +28,7 @@ func init() {
 
 	c := controller.Front
 	r := engine.Group("/")
+
 	r.GET("/", c.Index)
-	r.POST("/upload", c.Upload)
 
 }

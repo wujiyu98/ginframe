@@ -1,8 +1,10 @@
 {{define "content"}}
 <div class="container">
+  <a href="/contact?pathname=什么鬼 地主">b</a>
 
 
-  <form method="post" enctype="multipart/form-data" id="myform">
+
+  <form method="post" id="myform">
 
     <div class="mb-3">
       <label for="" class="form-label">Choose file</label>
@@ -16,14 +18,16 @@
   let myform = document.getElementById("myform");
   myform.addEventListener('submit', function (e) {
     e.preventDefault()
-    console.log(111);
+    let myform = document.getElementById("myform")
+    let formData = new FormData(myform)
+    fetch("/upload", {
+      method: "post",
+      body: formData,
+
+    }).then(response => response.json())
+      .then(data => console.log(data))
+
   })
-
-
-
-
-
-
 </script>
 
 {{end}}
