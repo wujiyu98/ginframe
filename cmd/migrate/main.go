@@ -17,7 +17,7 @@ func addData() {
 	db.Create(&languages)
 
 	catelogs := []entity.ArticleCategory{
-		{Name: "company", Pathname: "company", ParentID: 0, MetaTitle: "company"},
+		{Name: "company", Pathname: "company", ParentID: 0},
 	}
 	db.Create(&catelogs)
 
@@ -25,7 +25,7 @@ func addData() {
 
 	for i := 0; i < 10; i++ {
 
-		articles = append(articles, entity.Article{Title: fmt.Sprint("at", i), LanguageID: 1, ArticleCategoryID: 1, Pathname: fmt.Sprint("at", i), MetaTitle: "af"})
+		articles = append(articles, entity.Article{Title: fmt.Sprint("at", i), LanguageID: 1, ArticleCategoryID: 1, Pathname: fmt.Sprint("at", i)})
 
 	}
 	db.Create(&articles)
