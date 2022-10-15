@@ -33,6 +33,6 @@ func addData() {
 }
 
 func main() {
-	db.AutoMigrate(&entity.Language{}, &entity.ArticleCategory{}, &entity.Article{})
-	addData()
+	db.AutoMigrate(&entity.Meta{}, &entity.ArticleCategory{}, &entity.Address{}, &entity.Article{}, &entity.Banner{}, &entity.Category{}, &entity.Manufacturer{}, &entity.CategoryManufacturer{}, &entity.Language{}, &entity.Message{}, &entity.Enquiry{}, &entity.EnquiryProduct{}, &entity.Order{}, &entity.OrderProduct{}, &entity.Product{}, &entity.Attribute{}, &entity.ProductAttribute{}, &entity.User{}, &entity.Seo{}, &entity.SiteInfo{})
+
 }

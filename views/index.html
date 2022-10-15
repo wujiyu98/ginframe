@@ -1,6 +1,7 @@
 {{define "content"}}
 <div class="container">
-  <a href="/contact?pathname=什么鬼 地主">b</a>
+  <p>{{.seo.Meta.Title}}</p>
+
 
 
 
@@ -26,7 +27,6 @@
 
     }).then(response => response.json())
       .then(data => console.log(data))
-
   })
 </script>
 

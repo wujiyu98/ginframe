@@ -1,41 +1,285 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"time"
 
-type Language struct {
-	gorm.Model
-	Name     string `gorm:"size:60;not null"`
-	Domain   string `gorm:"size:120;not null"`
-	Code     string `gorm:"size:10;not null"`
-	ImageSrc string `gorm:"size:255;default:''"`
+	"gorm.io/gorm"
+)
+
+type Model struct {
+	ID        uint
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt
+}
+
+type Meta struct {
+	Title       string
+	Keywords    string
+	Description string
 }
 
 type ArticleCategory struct {
-	gorm.Model
-	Name            string `gorm:"size:255;not null;unique"`
-	Pathname        string `gorm:"size:255;not null;unique"`
-	ParentID        uint   `gorm:"not null"`
-	Sort            uint   `gorm:"default:0"`
-	Summary         string
-	MetaTitle       string `gorm:"size:255;not null"`
-	MetaKeywords    string `gorm:"size:120;default:''"`
-	MetaDescription string `gorm:"size:255;default:''"`
+	Model
+	Name      string
+	Pathname  string
+	ParentID  uint
+	SortOrder uint
+	Image     string
+	Summary   string
+	Meta      Meta `gorm:"embedded;embeddedPrefix:meta_"`
+}
+
+type Address struct {
+	Model
+	UserID    uint
+	CountryID uint
+	StateID   uint
+	CityID    uint
+	Firstname string
+	Lastname  string
+	Company   string
+	Postcode  string
+	Address1  string
+	Address2  string
 }
 
 type Article struct {
-	gorm.Model
+	Model
 	LanguageID        uint
-	ArticleCategoryID uint   `gorm:"not null"`
-	Title             string `gorm:"size:255;not null;unique"`
-	Pathname          string `gorm:"size:255;not null;unique"`
-	Sort              uint   `gorm:"not null;default:0"`
-	Showed            uint   `gorm:"not null;default:1"`
-	Summary           string `gorm:"size:1000"`
-	ImageSrc          string
+	ArticleCategoryID uint
+	Title             string
+	Pathname          string
+	SortOrder         uint
+	Showed            byte
+	Summary           string
+	Image             string
 	Author            string
-	Content           string `gorm:"type:longtext"`
-	MetaTitle         string `gorm:"size:255;not null"`
-	MetaKeywords      string `gorm:"size:120;default:''"`
-	MetaDescription   string `gorm:"size:255;default:''"`
-	FirstName         string
+	Content           string
+	Meta              Meta `gorm:"embedded;embeddedPrefix:meta_"`
+}
+
+type Banner struct {
+	Model
+	Name    string
+	Image   string
+	Url     string
+	Title   string
+	Summary string
+}
+
+type Category struct {
+	Model
+	Name      string
+	Pathname  string
+	ParentID  uint
+	SortOrder uint
+	Qty       uint
+	Image     string
+	Summary   string
+	Meta      Meta `gorm:"embedded;embeddedPrefix:meta_"`
+}
+
+type Manufacturer struct {
+	Model
+	Name      string
+	Pathname  string
+	SortOrder uint
+	Qty       uint
+	Image     string
+	Summary   string
+	Meta      Meta `gorm:"embedded;embeddedPrefix:meta_"`
+}
+
+type CategoryManufacturer struct {
+	CategoryID     uint
+	ManufacturerID uint
+}
+
+type Language struct {
+	Model
+	Name   string
+	Domain string
+	Code   string
+	Image  string
+}
+
+type Message struct {
+	Model
+	Name        string
+	Email       string
+	Country     string
+	MobilePhone string
+	Company     string
+	Comment     string
+}
+
+type Enquiry struct {
+	Model
+	Name        string
+	Email       string
+	Country     string
+	MobilePhone string
+	Company     string
+	Comment     string
+}
+
+type EnquiryProduct struct {
+	Title        string
+	Manufacturer string
+	Summary      string
+	Qty          uint
+	Price        float64
+}
+
+type Order struct {
+	Model
+	UserID            uint
+	OrderNumber       string
+	Address           string
+	TransactionNumber string
+	PaypalFee         float64
+	Total             float64
+	Payment           byte
+	Status            byte
+	Freight           float64
+	Express           string
+	TrackingNumber    string
+	CreatedAt         time.Time
+}
+
+type OrderProduct struct {
+	Model
+	OrderID      uint
+	ProductID    uint
+	URL          string
+	Title        string
+	Image        string
+	Manufacturer string
+	Summary      string
+	Qty          uint
+	Price        float64
+}
+
+type Product struct {
+	Model
+	LanguageID     uint
+	CategoryID     uint
+	ManufacturerID uint
+	Title          string
+	Pathname       string
+	SortOrder      uint
+	Showed         byte
+	Summary        string
+	Image          string
+	Images         []string
+	Content        string
+	Stock          uint
+	Hot            byte
+	New            byte
+	Special        byte
+	Price          float64
+	Prices         []map[string]string
+	Meta           Meta `gorm:"embedded;embeddedPrefix:meta_"`
+}
+
+type Attribute struct {
+	Model
+	CategoryID uint
+	Name       string
+}
+
+type ProductAttribute struct {
+	ProductID   uint
+	AttributeID uint
+	Text        string
+}
+
+type User struct {
+	Model
+	Email           string
+	Name            string
+	Country         string
+	Company         string
+	Password        string
+	RememberToken   string
+	MobilePhone     string
+	EmailVerifiedAt time.Time
+}
+
+type Seo struct {
+	Model
+	LanguageID uint
+	Name       string
+	Pathname   string
+	Meta       Meta `gorm:"embedded;embeddedPrefix:meta_"`
+}
+
+type SiteInfo struct {
+	Model
+	LanguageID  uint
+	SiteName    string
+	Company     string
+	Contact     string
+	Phone       string
+	Phone2      string
+	MobilePhone string
+	Skype       string
+	QQ          string
+	Whatsapp    string
+	Address     string
+}
+
+type City struct {
+	Model
+	Name        string
+	StateID     string
+	StateCode   string
+	CountryID   string
+	CountryCode string
+	Latitude    float64
+	Longitude   float64
+	Flag        bool
+	WikiDataID  string
+}
+
+// Countries [...]
+type Country struct {
+	Model
+	Name           string
+	Iso3           string
+	NumericCode    string
+	Iso2           string
+	Phonecode      string
+	Capital        string
+	Currency       string
+	CurrencyName   string
+	CurrencySymbol string
+	Tld            string
+	Native         string
+	Region         string
+	Subregion      string
+	Timezones      string
+	Translations   string
+	Latitude       float64
+	Longitude      float64
+	Emoji          string
+	EmojiU         string
+	Flag           bool
+	WikiDataID     string
+}
+
+// States [...]
+type State struct {
+	Model
+	Name        string
+	CountryID   uint
+	CountryCode string
+	FipsCode    string
+	Iso2        string
+	Type        string
+	Latitude    float64
+	Longitude   float64
+	Flag        bool
+	WikiDataID  string
 }

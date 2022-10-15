@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/wujiyu98/ginframe/dao"
-	"github.com/wujiyu98/ginframe/reponse"
+	"github.com/wujiyu98/ginframe/model"
 )
 
 var Front = frontController{}
@@ -12,11 +12,11 @@ type frontController struct {
 }
 
 func (c frontController) Index(ctx *gin.Context) {
-	var rep reponse.Index
+	var seo model.Seo
 
-	d := dao.New()
-	d.Find(&rep.Articles)
+	dao.New().First(&seo)
+	ctx.Set("seo", seo)
 
-	ctx.HTML(200, "index", rep)
+	ctx.HTML(200, "index", ctx.Keys)
 
 }
