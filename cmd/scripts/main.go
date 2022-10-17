@@ -24,7 +24,33 @@ func Find() {
 	fmt.Println(seo.Meta.Description)
 
 }
+
+func AddProduct() {
+	var product = model.Product{
+		Title:          "t2",
+		CategoryID:     1,
+		ManufacturerID: 2,
+		Pathname:       "t2",
+		ProductAttributes: []model.ProductAttribute{
+			{AttributeID: 3, Text: "asfsaf"},
+			{AttributeID: 2, Text: "gasda88"},
+		},
+	}
+
+	db.Create(&product)
+
+}
+
+func FindProduct() {
+	var prodcut model.Product
+
+	db.Preload("ProductAttributes").First(&prodcut)
+	fmt.Println(prodcut)
+
+}
+
 func main() {
-	Find()
+
+	FindProduct()
 
 }

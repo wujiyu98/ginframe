@@ -163,24 +163,25 @@ type OrderProduct struct {
 
 type Product struct {
 	Model
-	LanguageID     uint
-	CategoryID     uint
-	ManufacturerID uint
-	Title          string
-	Pathname       string
-	SortOrder      uint
-	Showed         byte
-	Summary        string
-	Image          string
-	Images         []string
-	Content        string
-	Stock          uint
-	Hot            byte
-	New            byte
-	Special        byte
-	Price          float64
-	Prices         []map[string]string
-	Meta           Meta `gorm:"embedded;embeddedPrefix:meta_"`
+	LanguageID        uint
+	CategoryID        uint
+	ManufacturerID    uint
+	Title             string
+	Pathname          string
+	SortOrder         uint
+	Showed            byte
+	Summary           string
+	Image             string
+	Images            []string `gorm:"type:json;serializer:json"`
+	Content           string
+	Stock             uint
+	Hot               byte
+	New               byte
+	Special           byte
+	Price             float64
+	Prices            []map[string]string `gorm:"type:json;serializer:json"`
+	Meta              Meta                `gorm:"embedded;embeddedPrefix:meta_"`
+	ProductAttributes []ProductAttribute
 }
 
 type Attribute struct {
