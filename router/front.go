@@ -30,5 +30,6 @@ func init() {
 	r := engine.Group("/")
 
 	r.GET("/", c.Index)
+	r.GET("/contact", c.Contact)
 
 }

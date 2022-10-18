@@ -1,9 +1,13 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func main() {
-	var a byte = 1
-	fmt.Println(a)
+	sort := ""
+	sort = strings.Replace(sort, "-", " ", 1)
+	fmt.Println(sort)
 
 }

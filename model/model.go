@@ -51,7 +51,7 @@ type Article struct {
 	Title             string
 	Pathname          string
 	SortOrder         uint
-	Showed            byte
+	Showed            *byte `gorm:"default:1"`
 	Summary           string
 	Image             string
 	Author            string
@@ -169,7 +169,7 @@ type Product struct {
 	Title             string
 	Pathname          string
 	SortOrder         uint
-	Showed            byte
+	Showed            *byte `gorm:"default:1"`
 	Summary           string
 	Image             string
 	Images            []string `gorm:"type:json;serializer:json"`
@@ -182,6 +182,20 @@ type Product struct {
 	Prices            []map[string]string `gorm:"type:json;serializer:json"`
 	Meta              Meta                `gorm:"embedded;embeddedPrefix:meta_"`
 	ProductAttributes []ProductAttribute
+}
+
+func (p *Product) AfterCreate(tx *gorm.DB) (err error) {
+	if len(p.ProductAttributes) > 0 {
+		var items []ProductAttribute
+		for _, v := range p.ProductAttributes {
+			v.ProductID = p.ID
+			items = append(items, v)
+		}
+
+		tx.Save(&items)
+
+	}
+	return
 }
 
 type Attribute struct {

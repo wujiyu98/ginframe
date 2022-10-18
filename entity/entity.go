@@ -169,7 +169,7 @@ type Product struct {
 	Title          string              `gorm:"size:255;not null;unique"`
 	Pathname       string              `gorm:"size:255;not null;unique"`
 	SortOrder      uint                `gorm:"type:int(11);default:0"`
-	Showed         byte                `gorm:"default:1"`
+	Showed         *byte               `gorm:"default:1"`
 	Summary        string              `gorm:"type:text;"`
 	Image          string              `gorm:"size:255;default:''"`
 	Images         []string            `gorm:"type:json;serializer:json"`

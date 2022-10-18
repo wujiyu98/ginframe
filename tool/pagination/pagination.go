@@ -2,6 +2,7 @@ package pagination
 
 import (
 	"fmt"
+	"html/template"
 	"math"
 
 	"github.com/gin-gonic/gin"
@@ -38,6 +39,7 @@ func New(ctx *gin.Context, size uint, args ...uint) *Paginate {
 	p.Slot = slot
 	p.Page = req.Page
 	p.Size = req.Size
+	p.Path = fmt.Sprint(ctx.Request.URL.Path, "?")
 
 	p.setOffset()
 	return &p
@@ -83,6 +85,14 @@ func (p *Paginate) setPageCount() {
 	if (p.Page > p.PageCount) && (p.PageCount > 0) {
 		p.Page = p.PageCount
 		p.setOffset()
+	}
+	p.FirstPageUrl = fmt.Sprintf("%spage=1&size=%d&count=%d", p.Path, p.Size, p.Count)
+	p.LastPageUrl = fmt.Sprintf("%spage=%d&size=%d&count=%d", p.Path, p.PageCount, p.Size, p.Count)
+	if p.Page != 1 {
+		p.PrevPageUrl = fmt.Sprintf("%spage=%d&size=%d&count=%d", p.Path, p.Page-1, p.Size, p.Count)
+	}
+	if p.Page != p.PageCount {
+		p.NextPageUrl = fmt.Sprintf("%spage=%d&size=%d&count=%d", p.Path, p.Page+1, p.Size, p.Count)
 	}
 }
 
@@ -138,5 +148,41 @@ func (p *Paginate) GetList() (lists []string) {
 	}
 
 	return
+
+}
+
+func (p *Paginate) BsPage() template.HTML {
+	var html, navH, navF, prev, next, items string
+	lists := p.GetList()
+	navH = `<nav aria-label="pagination"> <ul class="pagination my-3">`
+	navF = `</ul> </nav>`
+	if p.PrevPageUrl == "" {
+		prev = `<li class="page-item disabled"> <a class="page-link disabled" href="#" aria-label="Previous"> <span aria-hidden="true">&laquo;</span> </a> </li>`
+	} else {
+		prev = fmt.Sprintf(`<li class="page-item"> <a class="page-link" href="%s" aria-label="Previous"> <span aria-hidden="true">&laquo;</span> </a> </li>`, p.PrevPageUrl)
+	}
+	if p.NextPageUrl == "" {
+		next = `<li class="page-item disabled"> <a class="page-link" href="#" aria-label="Next"> <span aria-hidden="true">&raquo;</span> </a> </li>`
+	} else {
+		next = fmt.Sprintf(`<li class="page-item"> <a class="page-link" href="%s" aria-label="Next"> <span aria-hidden="true">&raquo;</span> </a> </li>`, p.NextPageUrl)
+	}
+	for _, list := range lists {
+		var item, linkUrl string
+		linkUrl = fmt.Sprintf("%spage=%s&size=%d&count=%d", p.Path, list, p.Size, p.Count)
+
+		switch {
+		case list == "...":
+			item = fmt.Sprintf(`<li class="page-item disabled"><a class="page-link" href="#">%s</a></li>`, list)
+		case list == fmt.Sprint(p.Page):
+			item = fmt.Sprintf(`<li class="page-item active" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, linkUrl, list)
+		default:
+			item = fmt.Sprintf(`<li class="page-item"><a class="page-link" href="%s">%s</a></li>`, linkUrl, list)
+		}
+		items += item
+	}
+	if p.Count != 0 {
+		html = navH + prev + items + next + navF
+	}
+	return template.HTML(html)
 
 }

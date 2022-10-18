@@ -27,17 +27,17 @@ func Find() {
 
 func AddProduct() {
 	var product = model.Product{
-		Title:          "t2",
+		Title:          "t1",
 		CategoryID:     1,
 		ManufacturerID: 2,
-		Pathname:       "t2",
+		Pathname:       "t1",
 		ProductAttributes: []model.ProductAttribute{
-			{AttributeID: 3, Text: "asfsaf"},
-			{AttributeID: 2, Text: "gasda88"},
+			{AttributeID: 1, Text: "wujiyuy"},
+			{AttributeID: 2, Text: "98"},
 		},
 	}
 
-	db.Create(&product)
+	db.Omit("ProductAttributes").Create(&product)
 
 }
 
@@ -50,7 +50,5 @@ func FindProduct() {
 }
 
 func main() {
-
 	FindProduct()
-
 }

@@ -1,33 +1,8 @@
 {{define "content"}}
 <div class="container">
-  <p>{{.seo.Meta.Title}}</p>
+  <div>{{.page}}</div>
 
-
-
-
-  <form method="post" id="myform">
-
-    <div class="mb-3">
-      <label for="" class="form-label">Choose file</label>
-      <input type="file" class="form-control" name="file" id="" placeholder="" aria-describedby="fileHelpId">
-      <div id="fileHelpId" class="form-text">Help text</div>
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-  </form>
 </div>
-<script>
-  let myform = document.getElementById("myform");
-  myform.addEventListener('submit', function (e) {
-    e.preventDefault()
-    let myform = document.getElementById("myform")
-    let formData = new FormData(myform)
-    fetch("/upload", {
-      method: "post",
-      body: formData,
 
-    }).then(response => response.json())
-      .then(data => console.log(data))
-  })
-</script>
 
 {{end}}
