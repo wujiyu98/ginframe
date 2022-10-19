@@ -2,7 +2,6 @@ package dao
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/wujiyu98/ginframe/database"
@@ -18,14 +17,14 @@ type dao struct {
 	*gorm.DB
 }
 
-func (d dao) pagination(p *pagination.Paginate, tx *gorm.DB, sort string, rows interface{}) {
+func (d dao) pagination(p *pagination.Paginate, tx *gorm.DB, rows interface{}) {
 
 	var count int64
 	if p.Count == 0 {
 		tx.Count(&count)
 		p.SetCount(count)
 	}
-	err := tx.Order(sort).Offset(p.Offset).Limit(int(p.Size)).Find(rows)
+	err := tx.Order(p.Sort).Offset(p.Offset).Limit(int(p.Size)).Find(rows)
 
 	if err != nil {
 		fmt.Println(err.Error)
@@ -38,10 +37,8 @@ func (d dao) pagination(p *pagination.Paginate, tx *gorm.DB, sort string, rows i
 // rows 是模型数组，query如果""是取全部
 func (d dao) Pagination(table string, ctx *gin.Context, size uint, rows interface{}, query interface{}, args ...interface{}) *pagination.Paginate {
 	p := pagination.New(ctx, size)
-	sort := ctx.Query("sort")
-	sort = strings.Replace(sort, "-", " ", 1)
 	tx := d.Table(table).Where(query, args...)
-	d.pagination(p, tx, sort, rows)
+	d.pagination(p, tx, rows)
 	return p
 
 }

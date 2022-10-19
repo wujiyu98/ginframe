@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"math"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,6 +15,7 @@ func Default(page uint, count int64) *Paginate {
 		Page:  page,
 		Count: count,
 		Slot:  3,
+		Sort:  "id desc",
 	}
 	p.setOffset()
 	return p
@@ -39,17 +41,21 @@ func New(ctx *gin.Context, size uint, args ...uint) *Paginate {
 	p.Slot = slot
 	p.Page = req.Page
 	p.Size = req.Size
-	p.Path = fmt.Sprint(ctx.Request.URL.Path, "?")
-
+	if req.Sort == "" {
+		req.Sort = "id-desc"
+	}
+	p.Sort = strings.Replace(req.Sort, "-", " ", 1)
+	p.Path = fmt.Sprint(ctx.Request.URL.Path)
 	p.setOffset()
 	return &p
 
 }
 
 type PaginateReq struct {
-	Count int64 `form:"count" json:"count" `
-	Page  uint  `form:"page" json:"page"`
-	Size  uint  `form:"size" json:"size"`
+	Count int64  `form:"count" json:"count" `
+	Page  uint   `form:"page" json:"page"`
+	Size  uint   `form:"size" json:"size"`
+	Sort  string `form:"sort" json:"sort"`
 }
 
 type Paginate struct {
@@ -63,6 +69,7 @@ type Paginate struct {
 	NextPageUrl    string      `json:"next_page_url"`
 	Size           uint        `form:"size" json:"size"`
 	Slot           uint        `json:"slot"`
+	Sort           string      `json:"sort"`
 	Offset         int         `json:"offset"`
 	PageCount      uint        `json:"page_count"`
 	Data           interface{} `json:"data"`
@@ -70,6 +77,14 @@ type Paginate struct {
 
 func (p *Paginate) SetSlot(slot uint) {
 	p.Slot = slot
+}
+
+func (p *Paginate) AddKey(key string, value string) {
+	if strings.Contains(p.Path, "?") {
+		p.Path = p.Path + "&" + fmt.Sprintf("%s=%s", key, value)
+	} else {
+		p.Path = p.Path + "?" + fmt.Sprintf("%s=%s", key, value)
+	}
 }
 
 func (p *Paginate) setOffset() {
@@ -81,23 +96,18 @@ func (p *Paginate) SetCount(count int64) {
 	p.setPageCount()
 }
 func (p *Paginate) setPageCount() {
+
 	p.PageCount = uint(math.Ceil(float64(p.Count) / float64(p.Size)))
 	if (p.Page > p.PageCount) && (p.PageCount > 0) {
 		p.Page = p.PageCount
 		p.setOffset()
 	}
-	p.FirstPageUrl = fmt.Sprintf("%spage=1&size=%d&count=%d", p.Path, p.Size, p.Count)
-	p.LastPageUrl = fmt.Sprintf("%spage=%d&size=%d&count=%d", p.Path, p.PageCount, p.Size, p.Count)
-	if p.Page != 1 {
-		p.PrevPageUrl = fmt.Sprintf("%spage=%d&size=%d&count=%d", p.Path, p.Page-1, p.Size, p.Count)
-	}
-	if p.Page != p.PageCount {
-		p.NextPageUrl = fmt.Sprintf("%spage=%d&size=%d&count=%d", p.Path, p.Page+1, p.Size, p.Count)
-	}
+
 }
 
 func (p *Paginate) GetList() (lists []string) {
 	p.setPageCount()
+
 	if p.PageCount > 0 {
 		switch {
 		case p.PageCount <= p.Slot+2:
@@ -148,6 +158,24 @@ func (p *Paginate) GetList() (lists []string) {
 	}
 
 	return
+
+}
+
+func (p *Paginate) setPath() {
+
+	p.FirstPageUrl = fmt.Sprint(p.Path)
+	format := `%spage=%d&size=%d&count=%d`
+
+	if !strings.Contains(p.Path, "?") {
+		format = `?%spage=%d&size=%d&count=%d`
+	}
+	p.LastPageUrl = fmt.Sprintf(format, p.Path, p.PageCount, p.Size, p.Count)
+	if p.Page != 1 {
+		p.PrevPageUrl = fmt.Sprintf(format, p.Path, p.Page-1, p.Size, p.Count)
+	}
+	if p.Page != p.PageCount {
+		p.NextPageUrl = fmt.Sprintf(format, p.Path, p.Page+1, p.Size, p.Count)
+	}
 
 }
 
