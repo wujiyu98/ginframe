@@ -40,11 +40,12 @@ func New(ctx *gin.Context, size uint, args ...uint) *Paginate {
 	}
 	p.Slot = slot
 	p.Page = req.Page
+	p.Count = req.Count
 	p.Size = req.Size
 	if req.Sort == "" {
 		req.Sort = "id-desc"
 	}
-	p.Sort = strings.Replace(req.Sort, "-", " ", 1)
+	p.Sort = req.Sort
 	p.Path = fmt.Sprint(ctx.Request.URL.Path)
 	p.setOffset()
 	return &p
@@ -75,6 +76,7 @@ type Paginate struct {
 	Data           interface{} `json:"data"`
 }
 
+//初始3个插槽即1...345...9 ，345这三个，如果需要多的可以添加1，3，5，7，9等数字
 func (p *Paginate) SetSlot(slot uint) {
 	p.Slot = slot
 }
@@ -107,7 +109,6 @@ func (p *Paginate) setPageCount() {
 
 func (p *Paginate) GetList() (lists []string) {
 	p.setPageCount()
-
 	if p.PageCount > 0 {
 		switch {
 		case p.PageCount <= p.Slot+2:
@@ -132,7 +133,7 @@ func (p *Paginate) GetList() (lists []string) {
 		default:
 			switch {
 			case p.Page <= p.Slot:
-				for i := 1; i <= int(p.Slot); i++ {
+				for i := 1; i <= int(p.Slot)+1; i++ {
 					lists = append(lists, fmt.Sprint(i))
 				}
 				lists = append(lists, "...")
@@ -164,17 +165,18 @@ func (p *Paginate) GetList() (lists []string) {
 func (p *Paginate) setPath() {
 
 	p.FirstPageUrl = fmt.Sprint(p.Path)
-	format := `%spage=%d&size=%d&count=%d`
+	format := `&%spage=%d&size=%d&count=%d&sort=%s`
 
 	if !strings.Contains(p.Path, "?") {
-		format = `?%spage=%d&size=%d&count=%d`
+		format = `?%spage=%d&size=%d&count=%d&sort=%s`
 	}
-	p.LastPageUrl = fmt.Sprintf(format, p.Path, p.PageCount, p.Size, p.Count)
+
+	p.LastPageUrl = template.HTMLEscapeString(fmt.Sprintf(format, p.Path, p.PageCount, p.Size, p.Count, p.Sort))
 	if p.Page != 1 {
-		p.PrevPageUrl = fmt.Sprintf(format, p.Path, p.Page-1, p.Size, p.Count)
+		p.PrevPageUrl = template.HTMLEscapeString(fmt.Sprintf(format, p.Path, p.Page-1, p.Size, p.Count, p.Sort))
 	}
 	if p.Page != p.PageCount {
-		p.NextPageUrl = fmt.Sprintf(format, p.Path, p.Page+1, p.Size, p.Count)
+		p.NextPageUrl = template.HTMLEscapeString(fmt.Sprintf(format, p.Path, p.Page+1, p.Size, p.Count, p.Sort))
 	}
 
 }
@@ -182,6 +184,7 @@ func (p *Paginate) setPath() {
 func (p *Paginate) BsPage() template.HTML {
 	var html, navH, navF, prev, next, items string
 	lists := p.GetList()
+	p.setPath()
 	navH = `<nav aria-label="pagination"> <ul class="pagination my-3">`
 	navF = `</ul> </nav>`
 	if p.PrevPageUrl == "" {
@@ -196,7 +199,12 @@ func (p *Paginate) BsPage() template.HTML {
 	}
 	for _, list := range lists {
 		var item, linkUrl string
-		linkUrl = fmt.Sprintf("%spage=%s&size=%d&count=%d", p.Path, list, p.Size, p.Count)
+		format := `%s&page=%s&size=%d&count=%d&sort=%s`
+
+		if !strings.Contains(p.Path, "?") {
+			format = `%s?page=%s&size=%d&count=%d&sort=%s`
+		}
+		linkUrl = template.HTMLEscapeString(fmt.Sprintf(format, p.Path, list, p.Size, p.Count, p.Sort))
 
 		switch {
 		case list == "...":

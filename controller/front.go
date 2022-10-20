@@ -15,6 +15,8 @@ func (c frontController) Index(ctx *gin.Context) {
 	var rep reponse.Index
 	d := dao.New()
 	p := d.Pagination("articles", ctx, 10, &rep.Articles, "")
+	p.AddKey("keyword", ctx.Query("keyword"))
+	p.AddKey("name", "wujiyu98")
 
 	ctx.Set("page", p.BsPage())
 

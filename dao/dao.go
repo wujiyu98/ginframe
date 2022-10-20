@@ -2,6 +2,7 @@ package dao
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/wujiyu98/ginframe/database"
@@ -24,7 +25,7 @@ func (d dao) pagination(p *pagination.Paginate, tx *gorm.DB, rows interface{}) {
 		tx.Count(&count)
 		p.SetCount(count)
 	}
-	err := tx.Order(p.Sort).Offset(p.Offset).Limit(int(p.Size)).Find(rows)
+	err := tx.Order(strings.Replace(p.Sort, "-", " ", 1)).Offset(p.Offset).Limit(int(p.Size)).Find(rows)
 
 	if err != nil {
 		fmt.Println(err.Error)
