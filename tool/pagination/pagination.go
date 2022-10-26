@@ -4,156 +4,127 @@ import (
 	"fmt"
 	"html/template"
 	"math"
+	"net/http"
+	"strconv"
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
-func Default(page uint, count int64) *Paginate {
-	p := &Paginate{
-		Size:  10,
-		Page:  page,
-		Count: count,
-		Slot:  3,
-		Sort:  "id desc",
-	}
-	p.setOffset()
-	return p
+type Paginator struct {
+	Total     uint
+	PageCount uint
+	Size      uint
+	Page      uint
+	Query     map[string]string
+	Path      string
+	Sort      string
+	From      string
+	Slot      uint
+	Data      interface{}
 }
 
-func New(ctx *gin.Context, size uint, args ...uint) *Paginate {
-	var req PaginateReq
-	var p Paginate
-	var slot uint = 3
-	if len(args) > 0 {
-		slot = args[0]
+var DefaultConfig = Paginator{
+	Page: 1,
+	Slot: 5,
+	Size: 10,
+	Path: "/",
+	Sort: "id-desc",
+}
+
+func New(r *http.Request, prePage uint) *Paginator {
+	var p Paginator
+	q := r.URL.Query()
+	page, _ := strconv.Atoi(q.Get("page"))
+	total, _ := strconv.Atoi(q.Get("total"))
+	size, _ := strconv.Atoi(q.Get("size"))
+	sort := q.Get("sort")
+	p.Page = uint(page)
+	p.Total = uint(total)
+	p.Size = uint(size)
+	if p.Size == 0 {
+		p.Size = prePage
 	}
-	ctx.ShouldBindQuery(&req)
-	if req.Size <= 0 {
-		req.Size = size
-	}
-	if req.Size > 100 {
-		req.Size = 100
-	}
-	if req.Page <= 0 {
-		req.Page = 1
-	}
-	p.Slot = slot
-	p.Page = req.Page
-	p.Count = req.Count
-	p.Size = req.Size
-	if req.Sort == "" {
-		req.Sort = "id-desc"
-	}
-	p.Sort = req.Sort
-	p.Path = fmt.Sprint(ctx.Request.URL.Path)
-	p.setOffset()
+	p.Sort = sort
+	p.validParams()
 	return &p
 
 }
-
-type PaginateReq struct {
-	Count int64  `form:"count" json:"count" `
-	Page  uint   `form:"page" json:"page"`
-	Size  uint   `form:"size" json:"size"`
-	Sort  string `form:"sort" json:"sort"`
-}
-
-type Paginate struct {
-	Count          int64       `form:"count" json:"count" `
-	Page           uint        `form:"page" json:"page"`
-	Path           string      `form:"pathname" json:"pathname"`
-	CurrentPageUrl string      `json:"current_page_url"`
-	FirstPageUrl   string      `json:"first_page_url"`
-	LastPageUrl    string      `json:"last_page_url"`
-	PrevPageUrl    string      `json:"prev_page_url"`
-	NextPageUrl    string      `json:"next_page_url"`
-	Size           uint        `form:"size" json:"size"`
-	Slot           uint        `json:"slot"`
-	Sort           string      `json:"sort"`
-	Offset         int         `json:"offset"`
-	PageCount      uint        `json:"page_count"`
-	Data           interface{} `json:"data"`
-}
-
-//初始3个插槽即1...345...9 ，345这三个，如果需要多的可以添加1，3，5，7，9等数字
-func (p *Paginate) SetSlot(slot uint) {
-	p.Slot = slot
-}
-
-func (p *Paginate) AddKey(key string, value string) {
-	if strings.Contains(p.Path, "?") {
-		p.Path = p.Path + "&" + fmt.Sprintf("%s=%s", key, value)
-	} else {
-		p.Path = p.Path + "?" + fmt.Sprintf("%s=%s", key, value)
+func Default(total uint, size uint) *Paginator {
+	p := Paginator{
+		Total: total,
+		Size:  size,
 	}
-}
-
-func (p *Paginate) setOffset() {
-	p.Offset = int(p.Page-1) * int(p.Size)
-}
-
-func (p *Paginate) SetCount(count int64) {
-	p.Count = count
+	p.validParams()
 	p.setPageCount()
+	return &p
 }
-func (p *Paginate) setPageCount() {
 
-	p.PageCount = uint(math.Ceil(float64(p.Count) / float64(p.Size)))
-	if (p.Page > p.PageCount) && (p.PageCount > 0) {
+func (p *Paginator) SetPath(path string) {
+	p.Path = path
+}
+
+func (p *Paginator) setPageCount() {
+	p.PageCount = uint(math.Ceil(float64(p.Total) / float64(p.Size)))
+	if p.Page > p.PageCount {
 		p.Page = p.PageCount
-		p.setOffset()
 	}
 
 }
 
-func (p *Paginate) GetList() (lists []string) {
-	p.setPageCount()
-	if p.PageCount > 0 {
-		switch {
-		case p.PageCount <= p.Slot+2:
-			for i := 1; i < int(p.PageCount); i++ {
-				lists = append(lists, fmt.Sprint(i))
-			}
-		case p.PageCount == p.Slot+3:
-			if p.Page <= p.Slot {
-				for i := 1; i <= int(p.Slot); i++ {
-					lists = append(lists, fmt.Sprint(i))
-				}
-				lists = append(lists, "...")
-				lists = append(lists, fmt.Sprint(p.PageCount))
-			} else {
-				lists = append(lists, "1")
-				lists = append(lists, "...")
-				for i := int(p.Slot); i <= int(p.PageCount); i++ {
-					lists = append(lists, fmt.Sprint(i))
-				}
+func (p *Paginator) Offset() int {
+	return int((p.Page - 1) * p.Size)
+}
 
+func (p *Paginator) validParams() {
+	p.Query = make(map[string]string)
+	if p.Page <= 0 {
+		p.Page = 1
+	}
+	if p.Slot == 0 {
+		p.Slot = DefaultConfig.Slot
+	}
+	if p.Sort == "" {
+		p.Sort = DefaultConfig.Sort
+	}
+	if p.Path == "" {
+		p.Path = "/"
+
+	}
+}
+
+func (p *Paginator) Paginate() (lists []string) {
+	p.setPageCount()
+	if p.Total > 0 {
+		switch {
+		case p.PageCount <= p.Slot:
+			for i := 1; i <= int(p.PageCount); i++ {
+				lists = append(lists, fmt.Sprint(i))
 			}
 		default:
 			switch {
-			case p.Page <= p.Slot:
-				for i := 1; i <= int(p.Slot)+1; i++ {
+			case p.Page > p.PageCount-(p.Slot+1)/2:
+				lists = append(lists, `1`)
+				lists = append(lists, `...`)
+				for i := int(p.PageCount - (p.Slot - 2)); i <= int(p.PageCount); i++ {
 					lists = append(lists, fmt.Sprint(i))
 				}
-				lists = append(lists, "...")
-				lists = append(lists, fmt.Sprint(p.PageCount))
-			case p.Page+p.Slot > p.PageCount:
-				lists = append(lists, "1")
-				lists = append(lists, "...")
-				for i := int(p.PageCount - p.Slot); i <= int(p.PageCount); i++ {
-					lists = append(lists, fmt.Sprint(i))
-				}
-			default:
-				lists = append(lists, "1")
-				lists = append(lists, "...")
-				for i := int(p.Page - (p.Slot-1)/2); i <= int(p.Page+(p.Slot-1)/2); i++ {
-					lists = append(lists, fmt.Sprint(i))
-				}
-				lists = append(lists, "...")
-				lists = append(lists, fmt.Sprint(p.PageCount))
-			}
 
+			case p.Page <= (p.Slot+1)/2:
+				for i := 1; i <= int(p.Slot-1); i++ {
+					lists = append(lists, fmt.Sprint(i))
+				}
+				lists = append(lists, `...`)
+				lists = append(lists, fmt.Sprint(p.PageCount))
+
+			default:
+				lists = append(lists, `1`)
+				lists = append(lists, `...`)
+				for i := int(p.Page - (p.Slot-2)/2); i <= int(p.Page+(p.Slot-3)/2); i++ {
+					lists = append(lists, fmt.Sprint(i))
+				}
+				lists = append(lists, `...`)
+				lists = append(lists, fmt.Sprint(p.PageCount))
+
+			}
 		}
 
 	}
@@ -162,63 +133,139 @@ func (p *Paginate) GetList() (lists []string) {
 
 }
 
-func (p *Paginate) setPath() {
-
-	p.FirstPageUrl = fmt.Sprint(p.Path)
-	format := `&%spage=%d&size=%d&count=%d&sort=%s`
-
-	if !strings.Contains(p.Path, "?") {
-		format = `?%spage=%d&size=%d&count=%d&sort=%s`
+func (p *Paginator) PageItems() (items []map[string]string) {
+	lists := p.Paginate()
+	path := p.QueryUrl()
+	for _, list := range lists {
+		var url string
+		if list != "..." {
+			url = p.addUrlParam(path, "page", list)
+			url = p.setComonParam(url)
+		}
+		m := make(map[string]string)
+		m[list] = url
+		items = append(items, m)
 	}
+	return
+}
 
-	p.LastPageUrl = template.HTMLEscapeString(fmt.Sprintf(format, p.Path, p.PageCount, p.Size, p.Count, p.Sort))
-	if p.Page != 1 {
-		p.PrevPageUrl = template.HTMLEscapeString(fmt.Sprintf(format, p.Path, p.Page-1, p.Size, p.Count, p.Sort))
-	}
-	if p.Page != p.PageCount {
-		p.NextPageUrl = template.HTMLEscapeString(fmt.Sprintf(format, p.Path, p.Page+1, p.Size, p.Count, p.Sort))
+func (p *Paginator) AddQuery(key string, value string) {
+
+	p.Query[key] = value
+
+}
+
+func (p *Paginator) AddQueries(items map[string]string) {
+
+	for k, v := range items {
+		p.Query[k] = v
+
 	}
 
 }
 
-func (p *Paginate) BsPage() template.HTML {
-	var html, navH, navF, prev, next, items string
-	lists := p.GetList()
-	p.setPath()
-	navH = `<nav aria-label="pagination"> <ul class="pagination my-3">`
-	navF = `</ul> </nav>`
-	if p.PrevPageUrl == "" {
+func (p *Paginator) addUrlParam(path string, k string, v string) string {
+	if !strings.Contains(path, "?") {
+		path += fmt.Sprint("?", k, "=", template.HTMLEscapeString(v))
+	} else {
+		path += fmt.Sprint("&", k, "=", template.HTMLEscapeString(v))
+	}
+	return path
+}
+
+func (p *Paginator) QueryUrl() string {
+	path := p.Path
+	for k, v := range p.Query {
+		path = p.addUrlParam(path, k, v)
+	}
+	return path
+}
+
+func (p *Paginator) FirstPageUrl() string {
+	path := p.QueryUrl()
+	return path
+}
+
+func (p *Paginator) PreviousPageUrl() (url string) {
+	if !(p.Page == 1) {
+		path := p.QueryUrl()
+		url = p.addUrlParam(path, "page", fmt.Sprint(p.Page-1))
+		url = p.setComonParam(url)
+	}
+	return
+}
+
+func (p *Paginator) NextPageUrl() (url string) {
+	if p.Page != p.PageCount {
+		path := p.QueryUrl()
+		url = p.addUrlParam(path, "page", fmt.Sprint(p.Page+1))
+		url = p.setComonParam(url)
+	}
+	return
+}
+
+func (p *Paginator) setComonParam(path string) string {
+	path = p.addUrlParam(path, "total", fmt.Sprint(p.Total))
+	path = p.addUrlParam(path, "size", fmt.Sprint(p.Size))
+	path = p.addUrlParam(path, "sort", p.Sort)
+	return path
+
+}
+
+func (p *Paginator) LastPageUrl() string {
+	path := p.QueryUrl()
+	path = p.addUrlParam(path, "page", fmt.Sprint(p.PageCount))
+	return p.setComonParam(path)
+}
+
+func (p *Paginator) Html() template.HTML {
+	var html, navL, navR, prev, next, content string
+
+	items := p.PageItems()
+	if len(items) == 0 {
+		return template.HTML(html)
+	}
+	navL = `<nav aria-label="pagination"> <ul class="pagination my-3">`
+	navR = `</ul> </nav>`
+	previousPageUrl := p.PreviousPageUrl()
+	if previousPageUrl == "" {
 		prev = `<li class="page-item disabled"> <a class="page-link disabled" href="#" aria-label="Previous"> <span aria-hidden="true">&laquo;</span> </a> </li>`
 	} else {
-		prev = fmt.Sprintf(`<li class="page-item"> <a class="page-link" href="%s" aria-label="Previous"> <span aria-hidden="true">&laquo;</span> </a> </li>`, p.PrevPageUrl)
+		prev = fmt.Sprintf(`<li class="page-item"> <a class="page-link" href="%s" aria-label="Previous"> <span aria-hidden="true">&laquo;</span> </a> </li>`, previousPageUrl)
 	}
-	if p.NextPageUrl == "" {
+	nextPageUrl := p.NextPageUrl()
+	if nextPageUrl == "" {
 		next = `<li class="page-item disabled"> <a class="page-link" href="#" aria-label="Next"> <span aria-hidden="true">&raquo;</span> </a> </li>`
 	} else {
-		next = fmt.Sprintf(`<li class="page-item"> <a class="page-link" href="%s" aria-label="Next"> <span aria-hidden="true">&raquo;</span> </a> </li>`, p.NextPageUrl)
+		next = fmt.Sprintf(`<li class="page-item"> <a class="page-link" href="%s" aria-label="Next"> <span aria-hidden="true">&raquo;</span> </a> </li>`, nextPageUrl)
 	}
-	for _, list := range lists {
-		var item, linkUrl string
-		format := `%s&page=%s&size=%d&count=%d&sort=%s`
+	currentpageStr := fmt.Sprint(p.Page)
+	for _, v := range items {
+		for k, v1 := range v {
+			switch k {
+			case `...`:
+				content += fmt.Sprintf(`<li class="page-item disabled" aria-current="..."><a class="page-link">%s</a></li>`, k)
+			case currentpageStr:
+				if k == "1" {
+					content += fmt.Sprintf(`<li class="page-item active" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, p.FirstPageUrl(), k)
+				} else {
+					content += fmt.Sprintf(`<li class="page-item active" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, v1, k)
+				}
+			default:
+				if k == "1" {
+					content += fmt.Sprintf(`<li class="page-item" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, p.FirstPageUrl(), k)
+				} else {
+					content += fmt.Sprintf(`<li class="page-item" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, v1, k)
 
-		if !strings.Contains(p.Path, "?") {
-			format = `%s?page=%s&size=%d&count=%d&sort=%s`
-		}
-		linkUrl = template.HTMLEscapeString(fmt.Sprintf(format, p.Path, list, p.Size, p.Count, p.Sort))
+				}
 
-		switch {
-		case list == "...":
-			item = fmt.Sprintf(`<li class="page-item disabled"><a class="page-link" href="#">%s</a></li>`, list)
-		case list == fmt.Sprint(p.Page):
-			item = fmt.Sprintf(`<li class="page-item active" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, linkUrl, list)
-		default:
-			item = fmt.Sprintf(`<li class="page-item"><a class="page-link" href="%s">%s</a></li>`, linkUrl, list)
+			}
+
 		}
-		items += item
 	}
-	if p.Count != 0 {
-		html = navH + prev + items + next + navF
-	}
+
+	html = navL + prev + content + next + navR
+
 	return template.HTML(html)
 
 }

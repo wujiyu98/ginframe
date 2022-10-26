@@ -1,14 +1,13 @@
 package main
 
-import (
-	"fmt"
-	"html/template"
-	"net/url"
-)
+import "fmt"
 
 func main() {
-	s := `"><script>alert(111);</script>"`
+	m := make(map[string]string)
+	m["name"] = "wuj"
+	for k, v := range m {
+		fmt.Println(v, k)
 
-	fmt.Println(template.HTMLEscapeString(url.PathEscape(s)))
+	}
 
 }

@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/wujiyu98/ginframe/dao"
-	"github.com/wujiyu98/ginframe/reponse"
+	"github.com/wujiyu98/ginframe/model"
 )
 
 var Front = frontController{}
@@ -12,13 +12,10 @@ type frontController struct {
 }
 
 func (c frontController) Index(ctx *gin.Context) {
-	var rep reponse.Index
+	var rows []model.Article
 	d := dao.New()
-	p := d.Pagination("articles", ctx, 10, &rep.Articles, "")
-	p.AddKey("keyword", ctx.Query("keyword"))
-	p.AddKey("name", "wujiyu98")
-
-	ctx.Set("page", p.BsPage())
+	p := d.Pagination("articles", ctx, 15, &rows, "")
+	ctx.Set("page", p.Html())
 
 	ctx.HTML(200, "index", ctx.Keys)
 }
