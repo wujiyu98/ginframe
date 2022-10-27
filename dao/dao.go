@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -25,12 +24,10 @@ func (d dao) pagination(p *pagination.Paginator, tx *gorm.DB, rows interface{}) 
 		tx.Count(&count)
 		p.Total = uint(count)
 	}
-	fmt.Println(p.Sort, p.Size)
-	err := tx.Order(strings.Replace(p.Sort, "-", " ", 1)).Offset(p.Offset()).Limit(int(p.Size)).Find(rows)
-
-	if err != nil {
-		fmt.Println(err.Error)
-
+	if p.Sort == "" {
+		tx.Offset(p.Offset()).Limit(int(p.Size)).Find(rows)
+	} else {
+		tx.Order(strings.Replace(p.Sort, "-", " ", 1)).Offset(p.Offset()).Limit(int(p.Size)).Find(rows)
 	}
 
 }

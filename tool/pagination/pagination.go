@@ -19,43 +19,42 @@ type Paginator struct {
 	Sort      string
 	From      string
 	Slot      uint
+	Position  string
 	Data      interface{}
 }
 
-var DefaultConfig = Paginator{
-	Page: 1,
-	Slot: 5,
-	Size: 10,
-	Path: "/",
-	Sort: "id-desc",
-}
-
 func New(r *http.Request, prePage uint) *Paginator {
-	var p Paginator
 	q := r.URL.Query()
 	page, _ := strconv.Atoi(q.Get("page"))
 	total, _ := strconv.Atoi(q.Get("total"))
 	size, _ := strconv.Atoi(q.Get("size"))
 	sort := q.Get("sort")
-	p.Page = uint(page)
-	p.Total = uint(total)
-	p.Size = uint(size)
-	if p.Size == 0 {
-		p.Size = prePage
+	p := Default(uint(total), prePage)
+	if page > 0 {
+		p.Page = uint(page)
 	}
-	p.Sort = sort
-	p.validParams()
-	return &p
+	if size > 0 {
+		p.Size = uint(size)
+	}
+	if sort != "" {
+		p.Sort = sort
+	}
+	return p
 
 }
+
 func Default(total uint, size uint) *Paginator {
-	p := Paginator{
+	p := &Paginator{
 		Total: total,
 		Size:  size,
 	}
-	p.validParams()
+	p.Query = make(map[string]string)
+	p.Page = 1
+	p.Slot = 5
+	p.Position = "center"
+	p.Path = "/"
 	p.setPageCount()
-	return &p
+	return p
 }
 
 func (p *Paginator) SetPath(path string) {
@@ -64,7 +63,7 @@ func (p *Paginator) SetPath(path string) {
 
 func (p *Paginator) setPageCount() {
 	p.PageCount = uint(math.Ceil(float64(p.Total) / float64(p.Size)))
-	if p.Page > p.PageCount {
+	if p.Page > p.PageCount && p.PageCount > 0 {
 		p.Page = p.PageCount
 	}
 
@@ -72,23 +71,6 @@ func (p *Paginator) setPageCount() {
 
 func (p *Paginator) Offset() int {
 	return int((p.Page - 1) * p.Size)
-}
-
-func (p *Paginator) validParams() {
-	p.Query = make(map[string]string)
-	if p.Page <= 0 {
-		p.Page = 1
-	}
-	if p.Slot == 0 {
-		p.Slot = DefaultConfig.Slot
-	}
-	if p.Sort == "" {
-		p.Sort = DefaultConfig.Sort
-	}
-	if p.Path == "" {
-		p.Path = "/"
-
-	}
 }
 
 func (p *Paginator) Paginate() (lists []string) {
@@ -207,7 +189,10 @@ func (p *Paginator) NextPageUrl() (url string) {
 func (p *Paginator) setComonParam(path string) string {
 	path = p.addUrlParam(path, "total", fmt.Sprint(p.Total))
 	path = p.addUrlParam(path, "size", fmt.Sprint(p.Size))
-	path = p.addUrlParam(path, "sort", p.Sort)
+	if p.Sort != "" {
+		path = p.addUrlParam(path, "sort", p.Sort)
+	}
+
 	return path
 
 }
@@ -225,37 +210,37 @@ func (p *Paginator) Html() template.HTML {
 	if len(items) == 0 {
 		return template.HTML(html)
 	}
-	navL = `<nav aria-label="pagination"> <ul class="pagination my-3">`
+	navL = fmt.Sprintf(`<nav aria-label="pagination"> <ul class="pagination justify-content-%s">`, p.Position)
 	navR = `</ul> </nav>`
 	previousPageUrl := p.PreviousPageUrl()
 	if previousPageUrl == "" {
-		prev = `<li class="page-item disabled"> <a class="page-link disabled" href="#" aria-label="Previous"> <span aria-hidden="true">&laquo;</span> </a> </li>`
+		prev = `<li class="page-item mx-1 disabled"> <a class="page-link disabled" href="#" aria-label="Previous"> <span aria-hidden="true">&laquo;</span> </a> </li>`
 	} else {
-		prev = fmt.Sprintf(`<li class="page-item"> <a class="page-link" href="%s" aria-label="Previous"> <span aria-hidden="true">&laquo;</span> </a> </li>`, previousPageUrl)
+		prev = fmt.Sprintf(`<li class="page-item mx-1"> <a class="page-link" href="%s" aria-label="Previous"> <span aria-hidden="true">&laquo;</span> </a> </li>`, previousPageUrl)
 	}
 	nextPageUrl := p.NextPageUrl()
 	if nextPageUrl == "" {
-		next = `<li class="page-item disabled"> <a class="page-link" href="#" aria-label="Next"> <span aria-hidden="true">&raquo;</span> </a> </li>`
+		next = `<li class="page-item mx-1 disabled"> <a class="page-link" href="#" aria-label="Next"> <span aria-hidden="true">&raquo;</span> </a> </li>`
 	} else {
-		next = fmt.Sprintf(`<li class="page-item"> <a class="page-link" href="%s" aria-label="Next"> <span aria-hidden="true">&raquo;</span> </a> </li>`, nextPageUrl)
+		next = fmt.Sprintf(`<li class="page-item mx-1"> <a class="page-link" href="%s" aria-label="Next"> <span aria-hidden="true">&raquo;</span> </a> </li>`, nextPageUrl)
 	}
 	currentpageStr := fmt.Sprint(p.Page)
 	for _, v := range items {
 		for k, v1 := range v {
 			switch k {
 			case `...`:
-				content += fmt.Sprintf(`<li class="page-item disabled" aria-current="..."><a class="page-link">%s</a></li>`, k)
+				content += fmt.Sprintf(`<li class="page-item mx-1 disabled" aria-current="..."><a class="page-link">%s</a></li>`, k)
 			case currentpageStr:
 				if k == "1" {
-					content += fmt.Sprintf(`<li class="page-item active" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, p.FirstPageUrl(), k)
+					content += fmt.Sprintf(`<li class="page-item mx-1 active" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, p.FirstPageUrl(), k)
 				} else {
-					content += fmt.Sprintf(`<li class="page-item active" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, v1, k)
+					content += fmt.Sprintf(`<li class="page-item mx-1 active" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, v1, k)
 				}
 			default:
 				if k == "1" {
-					content += fmt.Sprintf(`<li class="page-item" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, p.FirstPageUrl(), k)
+					content += fmt.Sprintf(`<li class="page-item mx-1" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, p.FirstPageUrl(), k)
 				} else {
-					content += fmt.Sprintf(`<li class="page-item" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, v1, k)
+					content += fmt.Sprintf(`<li class="page-item mx-1" aria-current="page"><a class="page-link" href="%s">%s</a></li>`, v1, k)
 
 				}
 
