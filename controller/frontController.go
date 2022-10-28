@@ -72,11 +72,3 @@ func (c frontController) Contact(ctx *gin.Context) {
 		"path": ctx.Request.URL.Path,
 	})
 }
-
-func (c frontController) PostEnquiry(ctx *gin.Context) {
-
-}
-
-func (c frontController) PostMessage(ctx *gin.Context) {
-
-}

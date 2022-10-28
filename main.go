@@ -1,25 +1,25 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
+	_ "github.com/wujiyu98/ginframe/config"
+	"github.com/wujiyu98/ginframe/model"
+	"github.com/wujiyu98/ginframe/notice"
 )
 
-type Cart struct {
-	ID       uint
-	Quantity uint
-}
-
 func main() {
-	// key := "fsafasfa#sgasf6f"
-	// s := gaes.EncryptString(`[1,23,4,5,6]`, key)
-	// fmt.Println(s)
-	// o, _ := gaes.DecryptString(s, key)
-	// fmt.Print(o)
-	var list []Cart
 
-	s := `[{"id":1,"quantity":131},{"id":3,"quantity":"131"}]`
+	var enquiry = model.Enquiry{
+		Name:        "wujiyu",
+		Email:       "284703576@qq.com",
+		Comment:     "hello man",
+		Country:     "china",
+		MobilePhone: "1312313131",
+		Company:     "SFA SDFASF",
+		Products: []model.EnquiryProduct{
+			{Title: "atmega1", Manufacturer: "ti", Summary: "asdf"},
+			{Title: "atmega2", Manufacturer: "ti", Summary: "asdf"},
+		},
+	}
+	notice.Enquiry(enquiry)
 
-	json.Unmarshal([]byte(s), &list)
-	fmt.Println(list)
 }

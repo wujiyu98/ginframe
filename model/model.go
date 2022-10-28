@@ -122,6 +122,7 @@ type Enquiry struct {
 	MobilePhone string
 	Company     string
 	Comment     string
+	Products    []EnquiryProduct `gorm:"type:json;serializer:json"`
 }
 
 type EnquiryProduct struct {

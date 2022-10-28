@@ -116,12 +116,13 @@ type Message struct {
 
 type Enquiry struct {
 	Model
-	Name        string `gorm:"varchar(60);not null"`
-	Email       string `gorm:"varchar(60);not null"`
-	Country     string `gorm:"varchar(60);not null"`
-	MobilePhone string `gorm:"varchar(30);not null"`
-	Company     string `gorm:"varchar(120);default:''"`
-	Comment     string `gorm:"varchar(255);not null"`
+	Name        string           `gorm:"varchar(60);not null"`
+	Email       string           `gorm:"varchar(60);not null"`
+	Country     string           `gorm:"varchar(60);not null"`
+	MobilePhone string           `gorm:"varchar(30);not null"`
+	Company     string           `gorm:"varchar(120);default:''"`
+	Comment     string           `gorm:"varchar(255);not null"`
+	Products    []EnquiryProduct `gorm:"type:json"`
 }
 
 type EnquiryProduct struct {
