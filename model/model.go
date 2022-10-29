@@ -13,6 +13,11 @@ type Model struct {
 	DeletedAt gorm.DeletedAt
 }
 
+type Cart struct {
+	ID  uint
+	Qty uint
+}
+
 type Meta struct {
 	Title       string
 	Keywords    string

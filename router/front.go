@@ -37,10 +37,9 @@ func init() {
 	r.GET("/manufacturers/:pathname", c.Manufacturer)
 	r.GET("/category", c.Categories)
 	r.GET("/category/:pathname", c.Category)
-	r.GET("/product/{:pathname}", c.Product)
-	r.GET("/news/article/:pathname", c.Article)
+	r.GET("/product/:pathname", c.Product)
+	r.GET("/news/:category/:pathname", c.Article)
 	r.GET("/news", c.News)
-	r.GET("/news/pathname", c.News)
-
-	r.GET("enquiry", c.Enquiry)
+	r.GET("/news/:pathname", c.News)
+	r.GET("/enquiry", c.Enquiry)
 }

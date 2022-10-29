@@ -197,6 +197,12 @@ func (p *Paginator) setComonParam(path string) string {
 
 }
 
+func (p *Paginator) CurrentPageUrl() string {
+	path := p.QueryUrl()
+	path = p.addUrlParam(path, "page", fmt.Sprint(p.Page))
+	return p.setComonParam(path)
+}
+
 func (p *Paginator) LastPageUrl() string {
 	path := p.QueryUrl()
 	path = p.addUrlParam(path, "page", fmt.Sprint(p.PageCount))

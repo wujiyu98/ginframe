@@ -13,6 +13,7 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 	"errors"
+	"fmt"
 )
 
 var (
@@ -28,7 +29,11 @@ func Encrypt(plainText []byte, key []byte, iv ...[]byte) ([]byte, error) {
 
 //加密字符串，key必须是16的倍数，不然会出错
 func EncryptString(text string, key string) string {
-	b, _ := Encrypt([]byte(text), []byte(key))
+	b, err := Encrypt([]byte(text), []byte(key))
+	if err != nil {
+		fmt.Println(err.Error())
+
+	}
 
 	return base64.StdEncoding.EncodeToString(b)
 
