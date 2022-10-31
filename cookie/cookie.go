@@ -28,7 +28,6 @@ func AddCart(ctx *gin.Context, cart model.Cart) error {
 	carts = append(carts, cart)
 	b, _ := json.Marshal(carts)
 	value := gaes.EncryptString(string(b), key)
-
 	ctx.SetCookie("carts", value, 9600, "/", domain, false, true)
 	return nil
 }
@@ -44,14 +43,15 @@ func DelCart(ctx *gin.Context, cart model.Cart) error {
 	} else {
 		return errors.New("carts is empty")
 	}
-	if err := checkCart(carts, cart); err != nil {
-		return err
+	carts = delCart(carts, cart)
+	if len(carts) > 0 {
+		b, _ := json.Marshal(carts)
+		value := gaes.EncryptString(string(b), key)
+		ctx.SetCookie("carts", value, 9600, "/", domain, false, true)
+	} else {
+		ctx.SetCookie("carts", "", -1, "/", domain, false, true)
 	}
-	carts = append(carts, cart)
-	b, _ := json.Marshal(carts)
-	value := gaes.EncryptString(string(b), key)
 
-	ctx.SetCookie("carts", value, 9600, "/", domain, false, true)
 	return nil
 
 }

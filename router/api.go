@@ -1,6 +1,8 @@
 package router
 
-import "github.com/wujiyu98/ginframe/controller"
+import (
+	"github.com/wujiyu98/ginframe/controller"
+)
 
 func init() {
 	c := controller.Api

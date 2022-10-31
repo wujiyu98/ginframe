@@ -41,11 +41,11 @@ func (c frontController) Info(ctx *gin.Context) {
 
 }
 
-func (c frontController) News(ctx *gin.Context) {
+func (c frontController) NewsCategory(ctx *gin.Context) {
 
 }
 
-func (c frontController) Article(ctx *gin.Context) {
+func (c frontController) News(ctx *gin.Context) {
 
 }
 
