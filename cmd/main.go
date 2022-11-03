@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/wujiyu98/ginframe/boot"
 	_ "github.com/wujiyu98/ginframe/boot"
-	// "github.com/wujiyu98/ginframe/router"
 )
 
 func main() {
-
+	boot.Start()
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/wujiyu98/ginframe/app/front"
 )
 
-func init() {
+func Run() {
 	e := gin.Default()
 	e.SetTrustedProxies(nil)
 	e.Use(ginsession.New())
@@ -26,7 +26,7 @@ func init() {
 		Master:       "layouts/master",
 		Partials:     []string{},
 		Funcs:        make(template.FuncMap),
-		DisableCache: false,
+		DisableCache: true,
 		Delims:       gintemplate.Delims{Left: "{{", Right: "}}"},
 	})
 
