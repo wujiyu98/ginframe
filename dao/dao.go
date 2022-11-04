@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/wujiyu98/ginframe/database"
-	"github.com/wujiyu98/ginframe/tool/pagination"
+	"github.com/wujiyu98/ginframe/tools/pagination"
 	"gorm.io/gorm"
 )
 

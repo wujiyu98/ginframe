@@ -3,11 +3,13 @@ package front
 import (
 	"github.com/gin-gonic/gin"
 	c "github.com/wujiyu98/ginframe/app/front/internal/controller"
+	"github.com/wujiyu98/ginframe/middleware"
 )
 
 func Init(e *gin.Engine) {
 
 	r := e.Group("/")
+	r.Use(middleware.Throttle)
 	r.GET("/", c.Index)
 	r.GET("/contact", c.Contact)
 	r.GET("/about/:pathname", c.About)

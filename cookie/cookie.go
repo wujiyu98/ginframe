@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"github.com/wujiyu98/ginframe/model"
-	"github.com/wujiyu98/ginframe/tool/gaes"
+	"github.com/wujiyu98/ginframe/tools/gaes"
 )
 
 var domain string = viper.GetString("servers.domain")

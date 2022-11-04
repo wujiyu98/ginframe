@@ -1,7 +1,6 @@
 package controller
 
 import (
-	gintemplate "github.com/foolin/gin-template"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,7 +10,6 @@ func Test(ctx *gin.Context) {
 
 func Index(ctx *gin.Context) {
 
-	gintemplate.HTML(ctx, 200, "index", ctx.Keys)
 }
 
 func Manufacturers(ctx *gin.Context) {
