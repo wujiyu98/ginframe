@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-//go:embed config.toml
+//go:embed *.toml
 var cfg string
 
 func init() {
